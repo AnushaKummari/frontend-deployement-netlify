@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 
 function App() {
 
@@ -8,43 +7,38 @@ function App() {
   const [price, setPrice] = useState("");
   const [stocks, setStocks] = useState([]);
 
-  const API_URL = "http://localhost:8081/stocks";
-
-  // Fetch all stocks
+  // Load from localStorage when app starts
   useEffect(() => {
-    fetchStocks();
+    const savedStocks = localStorage.getItem("stocks");
+    if (savedStocks) {
+      setStocks(JSON.parse(savedStocks));
+    }
   }, []);
 
-  const fetchStocks = () => {
-    axios.get(API_URL)
-      .then(response => {
-        setStocks(response.data);
-      })
-      .catch(error => {
-        console.error("Error fetching stocks:", error);
-      });
-  };
+  // Save to localStorage whenever stocks change
+  useEffect(() => {
+    localStorage.setItem("stocks", JSON.stringify(stocks));
+  }, [stocks]);
 
-  // Save stock to Spring Boot
   const saveStock = () => {
 
-    const stockData = {
-      stockname: stockname,
+    if (!stockname || !quantity || !price) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    const newStock = {
+      id: Date.now(), // unique ID
+      stockname,
       quantity: parseInt(quantity),
       price: parseFloat(price)
     };
 
-    axios.post(API_URL, stockData)
-      .then(response => {
-        alert("Stock Saved Successfully!");
-        fetchStocks();  // refresh list
-        setStockname("");
-        setQuantity("");
-        setPrice("");
-      })
-      .catch(error => {
-        console.error("Error saving stock:", error);
-      });
+    setStocks([...stocks, newStock]);
+
+    setStockname("");
+    setQuantity("");
+    setPrice("");
   };
 
   return (
